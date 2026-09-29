@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Govee Meta creative deep-dive: 190 ads in the Meta Ad Library record, Dec 2023 – Mar 2026.">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Govee Meta Deep-Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --ink:oklch(97.3% 0.013 78);
+  --ink-soft:oklch(94.2% 0.018 78);
+  --paper:oklch(18% 0.018 282);
+  --paper-dim:oklch(36% 0.022 282);
+  --coral:oklch(60% 0.19 31);
+  --cobalt:oklch(52% 0.17 257);
+  --lime:oklch(58% 0.16 142);
+  --yellow:oklch(70% 0.16 80);
+  --magenta:oklch(56% 0.20 334);
+  --line:oklch(18% 0.018 282 / 0.16);
+  --line-strong:oklch(18% 0.018 282 / 0.32);
+  --accent:var(--coral);
+  --font-display:"PP Mori","Archivo",Arial Narrow,system-ui,sans-serif;
+  --font-body:"PP Mori","Archivo",Arial Narrow,system-ui,sans-serif;
+  --font-mono:"Space Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:clip;}
+body{
+  margin:0;min-height:100vh;overflow-x:clip;
+  background:
+    radial-gradient(circle at 8% -2%, oklch(82% 0.05 28 / 0.10), transparent 36rem),
+    radial-gradient(circle at 96% 6%, oklch(86% 0.024 92 / 0.16), transparent 32rem),
+    linear-gradient(180deg, oklch(97.8% 0.011 78) 0%, var(--ink) 46%, var(--ink-soft) 100%);
+  color:var(--paper);font-family:var(--font-body);-webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.022;
+  background-image:linear-gradient(to right,var(--paper) 1px,transparent 1px),linear-gradient(to bottom,var(--paper) 1px,transparent 1px);
+  background-size:88px 88px;mask-image:linear-gradient(to bottom,oklch(18% 0.018 282 / 0.55),transparent 82%);}
+a{color:inherit;text-decoration:none;}
+img{display:block;max-width:100%;}
+.shell{position:relative;z-index:1;width:min(100%,1380px);margin:0 auto;padding:18px clamp(16px,3vw,44px) 56px;}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 0;isolation:isolate;flex-wrap:wrap;}
+.topbar::before{content:"";position:absolute;z-index:-1;top:0;bottom:0;left:50%;width:100vw;transform:translateX(-50%);background:oklch(97.3% 0.013 78 / 0.74);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid oklch(18% 0.018 282 / 0.1);}
+.brandmark{display:flex;align-items:center;gap:11px;}
+.brandmark .bm-txt{font-family:var(--font-mono);font-size:10px;line-height:1.2;text-transform:uppercase;color:var(--paper-dim);}
+.brandmark .bm-txt strong{display:block;color:var(--paper);font-size:12px;letter-spacing:.04em;}
+.topbar .tb-tag{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--paper-dim);}
+.bm-logo{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line-strong);background:var(--accent);color:var(--ink);font-family:var(--font-display);font-weight:650;font-size:12px;letter-spacing:-.02em;flex:none;}
+.hl-logo{display:flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;border:1px solid var(--line-strong);background:var(--accent);color:var(--ink);font-family:var(--font-display);font-weight:650;font-size:22px;flex:none;}
+
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(204px,236px) minmax(0,1fr);gap:clamp(28px,4vw,58px);align-items:start;}
+.content{min-width:0;}
+.sidenav{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:4px;}
+.sidenav-h{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--paper-dim);letter-spacing:.06em;margin:0 0 6px;}
+.runorder{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);}
+.runorder li{border-bottom:1px solid var(--line);}
+.runorder a{display:grid;grid-template-columns:24px 1fr;gap:9px;align-items:baseline;padding:9px 8px 9px 0;color:var(--paper);line-height:1.25;border-left:2px solid transparent;transition:background .12s;}
+.runorder a:hover{background:oklch(60% 0.19 31 / 0.06);}
+.runorder a .n{font-family:var(--font-mono);font-size:10px;color:var(--coral);padding-left:8px;}
+.runorder a .ttl{font-size:.95rem;}
+.runorder a small{display:block;font-family:var(--font-mono);font-size:8.5px;color:var(--paper-dim);text-transform:uppercase;margin-top:2px;}
+
+/* hero */
+.hero{padding:clamp(16px,2.5vw,32px) 0 clamp(24px,3vw,40px);}
+.hero-logo{display:flex;align-items:center;gap:16px;margin-bottom:22px;}
+.hero-logo .hl-name{font-family:var(--font-display);font-weight:650;font-size:1.5rem;text-transform:uppercase;letter-spacing:-.01em;}
+.hero-logo .hl-sub{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--paper-dim);margin-top:2px;}
+.kicker{font-family:var(--font-mono);font-size:11px;line-height:1.45;color:var(--paper-dim);text-transform:uppercase;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.kicker span{border:1px solid var(--line);padding:7px 10px;border-radius:6px;color:var(--paper);background:oklch(98% 0.012 78 / 0.55);}
+h1{margin:0;font-family:var(--font-display);font-size:clamp(2.8rem,6.6vw,6.2rem);font-weight:650;line-height:.85;letter-spacing:-.01em;text-transform:uppercase;}
+.title-line{display:block;}
+.intro{max-width:680px;margin:24px 0 0;font-size:clamp(1.02rem,1.5vw,1.22rem);line-height:1.55;color:var(--paper-dim);}
+.intro strong{color:var(--paper);}
+
+/* section */
+.section{border-top:1px solid var(--line-strong);padding:clamp(34px,5vw,68px) 0 clamp(18px,3vw,36px);scroll-margin-top:84px;}
+.section-head{display:grid;gap:13px;margin-bottom:clamp(22px,3vw,36px);}
+.section-label{font-family:var(--font-mono);font-size:11px;color:var(--accent);text-transform:uppercase;margin:0;letter-spacing:.05em;}
+h2{margin:0;font-family:var(--font-display);font-size:clamp(2.2rem,5.4vw,4.6rem);line-height:.9;text-transform:uppercase;letter-spacing:-.01em;font-weight:650;max-width:18ch;}
+.section-sub{margin:13px 0 0;max-width:40ch;font-family:var(--font-display);font-size:clamp(1.1rem,1.7vw,1.5rem);line-height:1.22;color:var(--paper);font-weight:650;letter-spacing:-.01em;}
+.section-lead{margin:12px 0 0;max-width:780px;font-size:clamp(1rem,1.4vw,1.18rem);line-height:1.55;color:var(--paper-dim);}
+.section-lead strong{color:var(--paper);}
+.runstamp{margin:10px 0 0;font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--paper-dim);display:inline-flex;align-items:center;gap:7px;}
+.runstamp::before{content:"\25D4";color:var(--accent);font-size:12px;}
+
+/* stat row */
+.statrow{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:clamp(18px,2.4vw,26px) 0 0;}
+.statrow .st{background:var(--ink);padding:16px 14px;}
+.statrow .st b{display:block;font-family:var(--font-display);font-size:clamp(1.5rem,2.6vw,2.4rem);line-height:1;font-weight:650;}
+.statrow .st b.hot{color:var(--coral);}
+.statrow .st small{display:block;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--paper-dim);margin-top:7px;letter-spacing:.04em;line-height:1.35;}
+
+/* scorecard */
+.scoregrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(18px,2.4vw,26px);}
+.sc{background:var(--ink);padding:16px 15px;display:flex;flex-direction:column;gap:9px;}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.sc-name{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--paper-dim);}
+.sc-val{font-family:var(--font-display);font-weight:650;font-size:1.5rem;line-height:1;}
+.sc-track{height:4px;background:oklch(18% 0.018 282 / 0.09);position:relative;}
+.sc-track i{position:absolute;inset:0 auto 0 0;}
+.sc p{margin:0;font-size:.82rem;line-height:1.4;color:var(--paper-dim);}
+.sc.bad .sc-val{color:var(--coral);}.sc.bad .sc-track i{background:var(--coral);}
+.sc.mid .sc-val{color:var(--yellow);}.sc.mid .sc-track i{background:var(--yellow);}
+.sc.ok .sc-val{color:var(--lime);}.sc.ok .sc-track i{background:var(--lime);}
+
+/* overview defs */
+.defs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(18px,2.4vw,26px);}
+.def{background:var(--ink);padding:clamp(18px,2.4vw,26px);}
+.def .dnum{font-family:var(--font-mono);font-size:10px;color:var(--accent);text-transform:uppercase;margin:0;}
+.def h3{margin:4px 0 0;font-family:var(--font-display);font-size:clamp(1.3rem,2vw,1.8rem);text-transform:uppercase;font-weight:650;line-height:1;}
+.def p{color:var(--paper-dim);line-height:1.5;font-size:.95rem;margin:12px 0 0;}
+.def p strong{color:var(--paper);}
+.def code{font-family:var(--font-mono);font-size:.8em;background:oklch(18% 0.018 282 / 0.06);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere;}
+
+/* winners */
+.winners{display:grid;grid-template-columns:1.4fr 1fr;gap:clamp(18px,2.4vw,28px);margin-top:clamp(18px,2.4vw,26px);}
+@media (max-width:900px){.winners{grid-template-columns:1fr;}}
+.panel{border:1px solid var(--line-strong);background:var(--ink);}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.panel-head .ph-t{font-family:var(--font-display);font-weight:650;font-size:1.15rem;text-transform:uppercase;}
+.win-list,.lp-slots{display:flex;flex-direction:column;}
+.win{display:grid;grid-template-columns:30px 1fr;gap:13px;align-items:start;padding:12px 16px;border-bottom:1px solid var(--line);transition:background .12s;}
+.win:last-child{border-bottom:0;}
+.win:hover{background:oklch(60% 0.19 31 / 0.06);}
+.win:hover .win-adv{color:var(--coral);}
+.win-rank{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--coral);}
+.win-adv{margin:0;font-family:var(--font-display);font-weight:650;font-size:.98rem;line-height:1.05;}
+.win-copy{margin:5px 0 0;font-size:.82rem;line-height:1.35;color:var(--paper-dim);}
+.win-metric{margin:6px 0 0;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--paper-dim);line-height:1.4;}
+.win-metric strong{color:var(--paper);font-size:11px;}
+.lp-badge{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--yellow);padding:3px 8px;border-radius:999px;}
+.lp-slot{display:grid;grid-template-columns:30px 1fr;gap:13px;align-items:start;padding:13px 16px;border-bottom:1px solid var(--line);}
+.lp-slot:last-child{border-bottom:0;}
+.lp-slot .lp-rank{font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--yellow);}
+.lp-info{min-width:0;}
+.lp-url{display:block;font-family:var(--font-mono);font-size:.78rem;color:var(--cobalt);overflow-wrap:anywhere;line-height:1.3;}
+.lp-sub{margin:5px 0 0;font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--paper-dim);}
+.lp-metric{margin:5px 0 0;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--paper-dim);line-height:1.4;}
+.lp-metric strong{color:var(--paper);}
+.lp-note{padding:12px 16px;border-top:1px solid var(--line);font-family:var(--font-mono);font-size:9.5px;line-height:1.5;color:var(--paper-dim);text-transform:uppercase;margin:0;}
+
+/* ad grid */
+.gridhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:clamp(20px,2.6vw,30px) 0 14px;flex-wrap:wrap;}
+.gridhead .gh-t{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;color:var(--paper-dim);letter-spacing:.05em;}
+.gridhead .gh-t b{color:var(--accent);font-weight:400;}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);}
+.card{background:var(--ink);display:flex;flex-direction:column;position:relative;scroll-margin-top:96px;}
+.ac-rank{position:absolute;top:8px;left:8px;z-index:2;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--ink);background:var(--coral);padding:2px 7px;border-radius:4px;}
+.ac-media{display:block;width:100%;border-bottom:1px solid var(--line);position:relative;aspect-ratio:1/1;overflow:hidden;background:oklch(18% 0.018 282 / 0.05);max-width:100%;}
+.ac-media img{width:100%;height:100%;object-fit:cover;}
+.ac-noimg{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:7px;text-align:center;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--paper-dim);line-height:1.4;padding:14px;}
+.ac-media video{width:100%;height:100%;object-fit:cover;background:#000;}
+.ac-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;padding:0;background:transparent;cursor:pointer;}
+.ac-play span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:oklch(18% 0.018 282 / 0.72);color:var(--ink);font-size:18px;padding-left:3px;}
+.ac-play:hover span{background:var(--coral);}
+.ac-noimg .ni-glyph{font-size:22px;color:var(--line-strong);}
+.ac-fmt{position:absolute;bottom:8px;right:8px;font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;color:var(--paper);background:oklch(97% 0.012 78 / 0.82);backdrop-filter:blur(6px);padding:2px 7px;border-radius:4px;border:1px solid var(--line);}
+.ac-body{padding:13px 14px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.ac-headline{margin:0;font-family:var(--font-display);font-weight:650;font-size:.95rem;line-height:1.1;}
+.ac-note{margin:0;font-size:.82rem;line-height:1.4;color:var(--paper);}
+.ac-themes{margin:0;font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;color:var(--paper-dim);line-height:1.45;}
+.ac-copy{margin:0;font-size:.84rem;line-height:1.45;color:var(--paper-dim);white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+.ac-copy.empty{font-style:italic;opacity:.65;}
+.ac-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto;padding-top:4px;}
+.ac-meta span{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--paper);}
+.ac-meta em{display:block;font-style:normal;color:var(--paper-dim);font-size:8px;margin-bottom:2px;}
+.ac-verify{display:flex;flex-wrap:wrap;gap:6px;}
+.ac-verify a{font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.02em;color:var(--cobalt);border:1px solid oklch(52% 0.17 257 / 0.4);border-radius:4px;padding:3px 6px;line-height:1.2;transition:background .12s,color .12s,border-color .12s;}
+.ac-verify a:hover{background:var(--cobalt);color:var(--ink);border-color:var(--cobalt);}
+.ac-verify a::before{content:"\2197 ";}
+#endurance .ac-rank{background:var(--lime);}
+#likes .ac-rank{background:var(--magenta);}
+.board-note{margin:0 0 14px;max-width:860px;font-family:var(--font-mono);font-size:10px;line-height:1.6;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.02em;border:1px dashed var(--line-strong);padding:13px 15px;}
+.board-note strong{color:var(--paper);}
+.board-note code{font-family:var(--font-mono);font-size:.9em;background:oklch(18% 0.018 282 / 0.06);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere;}
+
+/* finding */
+.finding{border:1px solid var(--line-strong);border-left:4px solid var(--accent);background:linear-gradient(180deg,oklch(60% 0.19 31 / 0.06),transparent 55%);padding:clamp(18px,2.6vw,30px);margin-top:clamp(18px,2.4vw,26px);}
+.finding.cobalt{--accent:var(--cobalt);background:linear-gradient(180deg,oklch(52% 0.17 257 / 0.06),transparent 55%);}
+.finding.lime{--accent:var(--lime);background:linear-gradient(180deg,oklch(58% 0.16 142 / 0.07),transparent 55%);}
+.finding.yellow{--accent:var(--yellow);background:linear-gradient(180deg,oklch(70% 0.16 80 / 0.09),transparent 55%);}
+.finding.magenta{--accent:var(--magenta);background:linear-gradient(180deg,oklch(56% 0.20 334 / 0.06),transparent 55%);}
+.finding .f-tag{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);display:block;margin-bottom:9px;}
+.finding h3{margin:0 0 12px;font-family:var(--font-display);font-weight:650;font-size:clamp(1.25rem,2.2vw,1.9rem);text-transform:uppercase;line-height:1;letter-spacing:-.01em;}
+.finding p{margin:0;max-width:840px;font-size:1.02rem;line-height:1.6;color:var(--paper-dim);}
+.finding p + p{margin-top:13px;}
+.finding p strong{color:var(--paper);}
+.finding code{font-family:var(--font-mono);font-size:.8em;background:oklch(18% 0.018 282 / 0.06);padding:1px 5px;border-radius:3px;overflow-wrap:anywhere;}
+.ev{margin:16px 0 0;padding-top:13px;border-top:1px dashed var(--line-strong);font-family:var(--font-mono);font-size:9.5px;line-height:1.6;text-transform:uppercase;color:var(--paper-dim);max-width:840px;}
+.ev strong{color:var(--paper);}
+
+/* specimen */
+.specimens{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(18px,2.4vw,26px);}
+.spec{background:var(--ink);padding:18px;display:flex;flex-direction:column;gap:11px;}
+.spec .sp-n{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--accent);letter-spacing:.05em;}
+.spec .sp-copy{white-space:pre-line;font-size:.92rem;line-height:1.5;color:var(--paper);margin:0;}
+.spec .sp-meta{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--paper-dim);line-height:1.5;margin:auto 0 0;padding-top:11px;border-top:1px solid var(--line);}
+
+/* bars */
+.bars{margin-top:clamp(18px,2.4vw,26px);border:1px solid var(--line);background:var(--ink);padding:18px;}
+.bar{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(0,2.2fr) 88px;gap:13px;align-items:center;padding:7px 0;}
+.bar .bl{font-size:.88rem;line-height:1.25;}
+.bar .bl em{font-style:normal;display:block;font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;color:var(--paper-dim);margin-top:2px;}
+.bar .bt{height:12px;background:oklch(18% 0.018 282 / 0.07);position:relative;}
+.bar .bt i{position:absolute;inset:0 auto 0 0;background:var(--accent);}
+.bar .bt i.dim{background:oklch(18% 0.018 282 / 0.3);}
+.bar .bt i.coral{background:var(--coral);}
+.bar .bt i.lime{background:var(--lime);}
+.bar .bt i.yellow{background:var(--yellow);}
+.bar .bv{font-family:var(--font-mono);font-size:10px;text-align:right;color:var(--paper-dim);}
+.axis{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--paper-dim);margin:12px 0 0;line-height:1.5;}
+@media (max-width:640px){.bar{grid-template-columns:1fr;gap:4px;}.bar .bv{text-align:left;}}
+
+/* table */
+.tblwrap{overflow-x:auto;margin-top:clamp(18px,2.4vw,26px);border:1px solid var(--line);background:var(--ink);}
+.lptable{width:100%;border-collapse:collapse;font-size:.9rem;min-width:640px;}
+.lptable th,.lptable td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+.lptable tr:last-child td{border-bottom:0;}
+.lptable th{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--paper-dim);font-weight:400;background:oklch(18% 0.018 282 / 0.035);}
+.lptable td:nth-child(n+2),.lptable th:nth-child(n+2){text-align:right;font-family:var(--font-mono);font-size:11px;}
+.lptable td:first-child{font-family:var(--font-display);font-weight:650;}
+.lptable td .u{display:block;font-family:var(--font-mono);font-size:9px;font-weight:400;color:var(--paper-dim);margin-top:3px;overflow-wrap:anywhere;}
+.pill{font-family:var(--font-mono);font-size:8.5px;text-transform:uppercase;padding:3px 7px;border-radius:999px;white-space:nowrap;color:var(--ink);}
+.pill.bad{background:var(--coral);}
+.pill.warn{background:var(--yellow);}
+.pill.ok{background:var(--lime);}
+
+/* plan */
+.plan{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(18px,2.4vw,26px);}
+.play{background:var(--ink);padding:clamp(18px,2.4vw,24px);}
+.play .pl-when{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:0;}
+.play h3{margin:6px 0 0;font-family:var(--font-display);font-weight:650;font-size:clamp(1.2rem,1.9vw,1.6rem);text-transform:uppercase;line-height:1.02;}
+.play ul{list-style:none;margin:14px 0 0;padding:0;}
+.play li{position:relative;padding:9px 0 9px 22px;border-top:1px solid var(--line);font-size:.93rem;line-height:1.5;color:var(--paper-dim);}
+.play li strong{color:var(--paper);font-weight:650;}
+.play li::before{content:"\2192";position:absolute;left:0;color:var(--accent);}
+.play .pl-metric{margin:14px 0 0;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--paper-dim);line-height:1.5;}
+.play .pl-metric strong{color:var(--paper);}
+
+/* footer */
+.footer{border-top:1px solid var(--line-strong);margin-top:clamp(40px,5vw,72px);padding:26px 0 0;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;font-family:var(--font-mono);font-size:10px;line-height:1.6;color:var(--paper-dim);text-transform:uppercase;}
+.footer div{max-width:46ch;}
+.footer strong{color:var(--paper);}
+
+@media (max-width:940px){
+  .layout{grid-template-columns:1fr;gap:22px;}
+  .sidenav{position:static;max-height:none;overflow:visible;padding-bottom:8px;border-bottom:1px solid var(--line-strong);}
+  .statrow{grid-template-columns:repeat(2,1fr);}
+  .defs{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}html{scroll-behavior:auto;}}
+:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px;}
+
+/* pending (awaiting capture) */
+.pending{border:1px dashed var(--line-strong);background:repeating-linear-gradient(135deg,oklch(18% 0.018 282 / 0.025) 0 10px,transparent 10px 20px);padding:clamp(22px,3vw,34px);display:grid;gap:10px;}
+.pending .pd-tag{font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);}
+.pending h3{margin:0;font-family:var(--font-display);font-weight:650;font-size:clamp(1.2rem,2vw,1.7rem);text-transform:uppercase;line-height:1;}
+.pending p{margin:0;max-width:760px;color:var(--paper-dim);line-height:1.55;font-size:.95rem;}
+.pending ul{margin:4px 0 0;padding:0;list-style:none;font-family:var(--font-mono);font-size:9.5px;text-transform:uppercase;color:var(--paper-dim);line-height:1.8;}
+.pending ul li::before{content:"\25A1  ";color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="topbar" id="top">
+    <div class="brandmark">
+      <span class="bm-logo">GV</span>
+      <span class="bm-txt"><strong>Govee</strong>Meta deep-dive</span>
+    </div>
+    <span class="tb-tag">Dec 2023 – Mar 2026 · 190 ads on record</span>
+  </div>
+
+  <div class="layout">
+
+    <nav class="sidenav">
+      <p class="sidenav-h">Run order</p>
+      <ol class="runorder">
+        <li><a href="#verdict"><span class="n">01</span><span class="ttl">The verdict<small>Scorecard · 3.0 / 10</small></span></a></li>
+        <li><a href="#play"><span class="n">02</span><span class="ttl">How Govee plays<small>Catalogue · flights · funnel</small></span></a></li>
+        <li><a href="#winners"><span class="n">03</span><span class="ttl">The winners on record<small>Top ads · top pages</small></span></a></li>
+        <li><a href="#board"><span class="n">04</span><span class="ttl">Top 25 by impressions<small>Meta · Atria order</small></span></a></li>
+        <li><a href="#likes"><span class="n">05</span><span class="ttl">Top by AdSpy likes<small>Awaiting capture</small></span></a></li>
+        <li><a href="#endurance"><span class="n">06</span><span class="ttl">The endurance cohort<small>Longest-running 10</small></span></a></li>
+        <li><a href="#offer"><span class="n">07</span><span class="ttl">Offer architecture<small>Holidays &amp; boilerplate</small></span></a></li>
+        <li><a href="#message"><span class="n">08</span><span class="ttl">The message map<small>Four templates</small></span></a></li>
+        <li><a href="#audience"><span class="n">09</span><span class="ttl">Markets &amp; catalogue<small>Four storefronts · 13 lines</small></span></a></li>
+        <li><a href="#pages"><span class="n">10</span><span class="ttl">Landing pages<small>71 destinations</small></span></a></li>
+        <li><a href="#plan"><span class="n">11</span><span class="ttl">The 90-day plan<small>Six plays</small></span></a></li>
+        <li><a href="#method"><span class="n">12</span><span class="ttl">Method &amp; limits<small>What this is not</small></span></a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <header class="hero">
+        <div class="hero-logo">
+          <span class="hl-logo">GV</span>
+          <div>
+            <div class="hl-name">Govee</div>
+            <div class="hl-sub">us.govee.com · smart lighting · 241,445 page likes</div>
+          </div>
+        </div>
+        <div class="kicker">
+          <span>Meta creative deep-dive</span>
+          <span>All-time record</span>
+          <span>190 ads</span>
+          <span>0 live at last refresh</span>
+          <span>Meta Ad Library via Atria</span>
+        </div>
+        <h1><span class="title-line">Govee ships</span><span class="title-line">flights,</span><span class="title-line">not winners.</span></h1>
+        <p class="intro">190 ads. <strong>71 destinations.</strong> A median run of <strong>three days.</strong> Govee's Meta page launched 187 of its 190 recorded ads in four holiday-driven months, Christmas 2023 to Easter 2024, rotated them through four regional storefronts and Amazon, and switched almost every one off inside a week. This is a teardown of what the brand bought, the two ads that were allowed to last, and where the traffic went.</p>
+      </header>
+
+      <!-- 01 -->
+      <section class="section" id="verdict" style="--accent:var(--coral)">
+        <div class="section-head">
+          <p class="section-label">01 · The verdict</p>
+          <h2>Launched, then abandoned</h2>
+          <p class="section-sub">A calendar of sales, not a system that learns.</p>
+          <p class="section-lead">Govee isn't short of product or creative. It ran <strong>190 ads across 13 product lines</strong> in four markets. What's missing is patience. <strong>111 ads (58%) ran three days or less</strong>, and only two ever passed twenty days. Both were videos, and both had something to say beyond “High Quality &amp; Fast Delivery”. The account pays for a launch every week and never pays for what those launches learned.</p>
+          <p class="runstamp">Atria record as of 3 Mar 2026 · 190 ads all-time · none active</p>
+        </div>
+
+        <div class="statrow">
+          <div class="st"><b>190</b><small>Ads on record, all-time</small></div>
+          <div class="st"><b class="hot">98%</b><small>Launched Dec 2023 – Mar 2024</small></div>
+          <div class="st"><b class="hot">3 d</b><small>Median run length</small></div>
+          <div class="st"><b>71</b><small>Distinct destinations</small></div>
+          <div class="st"><b class="hot">35%</b><small>Headlines that are shipping boilerplate</small></div>
+        </div>
+
+        <div class="scoregrid">
+          <div class="sc mid"><div class="sc-top"><span class="sc-name">Creative volume</span><span class="sc-val">5</span></div><div class="sc-track"><i style="width:50%"></i></div><p>187 ads in four months, then three in the next two years on this page.</p></div>
+          <div class="sc bad"><div class="sc-top"><span class="sc-name">Message diversity</span><span class="sc-val">3</span></div><div class="sc-track"><i style="width:30%"></i></div><p>67 of 190 headlines say “Quality &amp; Fast Delivery” or “Free Shipping”.</p></div>
+          <div class="sc mid"><div class="sc-top"><span class="sc-name">Offer discipline</span><span class="sc-val">4</span></div><div class="sc-track"><i style="width:40%"></i></div><p>Offers are tied to real holidays, but prices are quoted in $, £ and € with no shared offer.</p></div>
+          <div class="sc bad"><div class="sc-top"><span class="sc-name">Creative endurance</span><span class="sc-val">2</span></div><div class="sc-track"><i style="width:20%"></i></div><p>Median run 3 days. 58% of ads were off within 72 hours.</p></div>
+          <div class="sc bad"><div class="sc-top"><span class="sc-name">Proof deployment</span><span class="sc-val">2</span></div><div class="sc-track"><i style="width:20%"></i></div><p>No star rating, review count or “#1 on Amazon” claim in any of the 60 ad bodies pulled.</p></div>
+          <div class="sc bad"><div class="sc-top"><span class="sc-name">Traffic architecture</span><span class="sc-val">2</span></div><div class="sc-track"><i style="width:20%"></i></div><p>71 destinations for 190 ads: four storefronts, Amazon and Instant Experiences.</p></div>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="section" id="play" style="--accent:var(--cobalt)">
+        <div class="section-head">
+          <p class="section-label">02 · Overview</p>
+          <h2>What Govee is &amp; how it plays</h2>
+          <p class="section-lead">An Amazon-born smart-lighting brand with a broad catalogue, advertising on Meta in short holiday bursts, one product at a time, in whichever storefront the ad set happens to target.</p>
+        </div>
+        <div class="defs">
+          <div class="def">
+            <p class="dnum">01 — The product</p>
+            <h3>A catalogue with no hero</h3>
+            <p>Thirteen product lines share the budget almost evenly: <strong>floor lamps (24 ads)</strong>, <strong>TV backlights (23)</strong>, <strong>Neon Rope Light 2 (23)</strong>, outdoor and permanent lights (17), LED strips (17), curtain lights (14), neon strip (9), Glide wall panels (8), the Galaxy projector (6) and recessed lights (3). No single SKU takes more than 13% of the ads.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">02 — The strategy</p>
+            <h3>Holiday flights</h3>
+            <p>Ads come in dated waves: <strong>Christmas / New Year (42 ads from 21–28 Dec 2023)</strong>, a January clear-out (26), <strong>Valentine's Day (52 in February)</strong> and <strong>Easter (67 in March)</strong>. 25 ads went live on 1 February alone. After March 2024 the page runs three more ads in two years, so current spend almost certainly sits elsewhere (see Method).</p>
+          </div>
+          <div class="def">
+            <p class="dnum">03 — What they push</p>
+            <h3>Colour, shipping, price</h3>
+            <p>The copy leans on RGBIC colour effects (“16 million colours”, “45 scene modes”, “endless color combinations”) plus a delivery promise and a discount. Headlines split into <strong>shipping boilerplate (67)</strong>, product names (58), seasonal sales (33), price cuts (16) and <strong>Klarna pay-later (10)</strong>.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">04 — The funnel</p>
+            <h3>Five front doors</h3>
+            <p>Traffic goes to <code>eu.govee.com</code> (77 ads), <code>us.govee.com</code> (48), <code>uk.govee.com</code> (30) and <code>ca.govee.com</code> (2), with <strong>20 ads sent to Amazon</strong> through Amazon Attribution links and <strong>13 into Meta Instant Experiences</strong>. Most body copy also carries a separate <code>bit.ly</code> link competing with the CTA button.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="section" id="winners" style="--accent:var(--coral)">
+        <div class="section-head">
+          <p class="section-label">03 · The winners on record</p>
+          <h2>The winners on record</h2>
+          <p class="section-lead">Atria holds no impression rank for any Govee ad, so run length is the only real signal of what the brand chose to keep paying for. Two ads stand apart. Everything else stopped within 19 days.</p>
+        </div>
+        <div class="winners">
+          <div class="panel">
+            <div class="panel-head"><span class="ph-t">Top ads by run length</span><span class="tb-tag">All-time · 190 ads</span></div>
+            <div class="win-list">
+              <div class="win"><span class="win-rank">01</span><div><p class="win-adv">Top Quality &amp; Fast Delivery</p><p class="win-copy">✨Add a vibrant touch to any room with the Govee Neon Rope Light 2. 🛒Explore More &gt;&gt;</p><p class="win-metric">Video 41s · Neon Rope Light 2 · <strong>67 days</strong> · eu.govee.com PDP</p></div></div>
+              <div class="win"><span class="win-rank">02</span><div><p class="win-adv">AI Sync Box 2, creator voice</p><p class="win-copy">“I installed new LED lights behind my TV, and I love how it turned out! The box connects to the TV and makes the lights change color…”</p><p class="win-metric">Video 37s · #advertising · <strong>63 days</strong> · the page's only 2025–26 ad</p></div></div>
+              <div class="win"><span class="win-rank">03</span><div><p class="win-adv">High Quality &amp; Fast Delivery</p><p class="win-copy">😘Govee RGBICWW Outdoor LED Strip Lights ✨Endless color combinations for every season</p><p class="win-metric">Image · Christmas flight · <strong>19 days</strong> · eu.govee.com PDP</p></div></div>
+              <div class="win"><span class="win-rank">04</span><div><p class="win-adv">High Quality &amp; Fast Delivery</p><p class="win-copy">❤️GET 25% OFF 😘Govee TV Backlight 3 Lite ✨An Upgraded Entry for Your Movie Nights</p><p class="win-metric">Image · <strong>19 days</strong> · uk.govee.com PDP</p></div></div>
+              <div class="win"><span class="win-rank">05</span><div><p class="win-adv">Permanent Outdoor Lights</p><p class="win-copy">Rugged beauty that defies the elements! 🏡✨ Withstands -4°F to 140°F, 50,000 hours of brilliance.</p><p class="win-metric">Image · <strong>18 days</strong> · us.govee.com PDP</p></div></div>
+              <div class="win"><span class="win-rank">06</span><div><p class="win-adv">Expand Your Entertainment</p><p class="win-copy">Relax and unwind with our collection of lights for the bedroom…</p><p class="win-metric">Video 26s · <strong>17 days</strong> · Instant Experience</p></div></div>
+            </div>
+            <p class="lp-note">Only 2 of 190 ads ran past 19 days. Both are video.</p>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><span class="ph-t">Top destinations</span><span class="lp-badge">71 total</span></div>
+            <div class="lp-slots">
+              <div class="lp-slot"><span class="lp-rank">01</span><div class="lp-info"><span class="lp-url">fb.com/canvas_doc/…</span><p class="lp-sub">Meta Instant Experiences · 13 separate docs</p><p class="lp-metric"><strong>13 ads</strong> · 6.8% · longest run 17 d</p></div></div>
+              <div class="lp-slot"><span class="lp-rank">02</span><div class="lp-info"><span class="lp-url">amazon.de/dp/B0CQRBC3Y2</span><p class="lp-sub">Neon Rope Light 2 · Amazon Germany</p><p class="lp-metric"><strong>9 ads</strong> · 4.7% · longest run 18 d</p></div></div>
+              <div class="lp-slot"><span class="lp-rank">03</span><div class="lp-info"><span class="lp-url">eu.govee.com/products/govee-curtain-lights</span><p class="lp-sub">Curtain Lights PDP · EU</p><p class="lp-metric"><strong>8 ads</strong> · 4.2% · longest run 5 d</p></div></div>
+              <div class="lp-slot"><span class="lp-rank">04</span><div class="lp-info"><span class="lp-url">eu.govee.com/products/govee-tv-backlight-3-lite</span><p class="lp-sub">TV Backlight 3 Lite PDP · EU</p><p class="lp-metric"><strong>7 ads</strong> · 3.7% · longest run 17 d</p></div></div>
+              <div class="lp-slot"><span class="lp-rank">05</span><div class="lp-info"><span class="lp-url">eu.govee.com/products/govee-envisual-tv-backlight-t2</span><p class="lp-sub">Envisual T2 PDP · EU</p><p class="lp-metric"><strong>7 ads</strong> · 3.7% · longest run 15 d</p></div></div>
+            </div>
+            <p class="lp-note">No destination takes more than 7% of ads. The biggest “page” is really 13 different Instant Experiences.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section class="section" id="board" style="--accent:var(--coral)">
+        <div class="section-head">
+          <p class="section-label">04 · Board · Meta impressions</p>
+          <h2>Top 25 by impressions</h2>
+          <p class="section-lead">The first 25 ads in Atria's “most impressions” order for Govee's page. <strong>None of Govee's 190 ads has an impression rank on record</strong>, so this order falls back to launch date and reads as the brand's 25 most recent ads. It is not a performance ranking. Filtering for any ranked ad returns zero. Read it as the last thing Govee shipped: a late-March Easter wave with a 2024 outdoor video and the 2025 creator ad in front.</p>
+          <p class="runstamp">Atria record as of 3 Mar 2026 · all 25 inactive · launched 27 Mar 2024 – 29 Dec 2025</p>
+        </div>
+        <p class="board-note"><strong>Creative loads from source.</strong> Images and video posters load directly from <code>cdn.tryatria.com</code>; click a poster with a ▶ to play the MP4. MP4 links were captured for 6 of the 13 videos (the rest hit Atria's rate limit), and those cards link to the Meta Ad Library entry instead. If a file is unavailable the card falls back to a placeholder.</p>
+        <div class="gridhead"><span class="gh-t">Atria impression order (falls back to recency) · <b>25 creatives · 13 video, 12 image · 10 US, 9 EU, 3 UK, 1 CA, 1 Amazon, 1 Instant Experience</b></span></div>
+        <div class="cardgrid" id="board-grid"></div>
+
+        <div class="finding">
+          <span class="f-tag">Finding · critical</span>
+          <h3>The latest wave is the same ad in three storefronts</h3>
+          <p>The Easter wave that makes up most of this board sends one product to three storefronts under three different headlines. The RGBICW floor lamp runs as <strong>“High Quality &amp; Fast Delivery”</strong> on eu.govee.com, <strong>“Top Quality &amp; Fast Delivery”</strong> on uk.govee.com and <strong>“RGBICW Floor Lamp”</strong> on us.govee.com, all launched 27–29 March and all off within three days. The same pattern repeats for Neon Rope Light 2 across EU, US and Amazon.</p>
+          <p>Each storefront's ad set learns on its own, from a few days of data. Nothing from the EU test reaches the US ad, and none of them runs long enough to learn anything at all.</p>
+          <p class="ev"><strong>Evidence</strong> — Floor lamp: board ranks 4, 22, 25 (eu / uk / us), 2–3 days each. Neon Rope Light 2: ranks 3, 11, 13, 15, 17, 18 across eu, us and Amazon DE.</p>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="section" id="likes" style="--accent:var(--magenta)">
+        <div class="section-head">
+          <p class="section-label">05 · Engagement · AdSpy likes</p>
+          <h2>What people actually like</h2>
+          <p class="section-lead">The same brand, sorted by the reactions people leave rather than the impressions Meta serves. This section is waiting on an AdSpy capture from a logged-in browser session. AdSpy can't be reached from the environment that built this report.</p>
+          <p class="runstamp">AdSpy search “govee” (text + advertiser) · sorted by total likes · pending</p>
+        </div>
+
+        <div class="pending" id="likes-pending">
+          <span class="pd-tag">Awaiting data · AdSpy via Claude in Chrome</span>
+          <h3>Top 25 Govee ads by AdSpy likes</h3>
+          <p>Run the AdSpy search for <strong>“govee”</strong> (ad text + advertiser), sort by likes, and capture the top 25. The card grid below renders automatically once the <code>likes</code> array in this page is filled, in the same format as the Solawave deep-dive.</p>
+          <ul>
+            <li>Headline, body copy and link description</li>
+            <li>Likes, comments, shares</li>
+            <li>First and last seen dates, network (Facebook / Instagram)</li>
+            <li>Image or video URL, post URL, AdSpy ad URL, landing URL</li>
+          </ul>
+        </div>
+        <div class="gridhead" id="likes-head" hidden><span class="gh-t">Ranked by AdSpy total likes · <b id="likes-sum"></b></span></div>
+        <div class="cardgrid" id="likes-grid" hidden></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="section" id="endurance" style="--accent:var(--lime)">
+        <div class="section-head">
+          <p class="section-label">06 · The endurance cohort</p>
+          <h2>What they kept paying for</h2>
+          <p class="section-lead">Without impression ranks, run length is the only verdict the brand itself has recorded. Renewing a creative is a decision. The ten longest-running Govee ads fall into two groups: <strong>two videos that ran two months each</strong>, and a Christmas 2023 cohort of static PDP ads that got about 18 days.</p>
+        </div>
+        <div class="gridhead"><span class="gh-t">Ranked by observed run length · <b>10 creatives · 3 video, 6 image, 1 carousel · 67 d down to 17 d</b></span></div>
+        <div class="cardgrid" id="endurance-grid"></div>
+
+        <div class="finding lime">
+          <span class="f-tag">Finding · opportunity</span>
+          <h3>The only creator-voice ad is the second-longest-lived ad in the account</h3>
+          <p>Ad 2 is unlike anything else Govee ran. It is first-person, disclosed with <code>#advertising</code>, 565 characters long, and describes a real setup: <em>“I installed new LED lights behind my TV, and I love how it turned out… I can also set up my own scenes or tell the Govee AI what kind of scene I would want to see.”</em> It ran <strong>63 days</strong>, against a median of 3 for everything else on the page, and it is the only ad the page ran in 2025 or 2026.</p>
+          <p>The rest of the account speaks in emoji-led catalogue copy (“😍 ✨ 🛒 Explore More &gt;&gt;”). The one ad that sounds like a customer showing off their living room is the one the brand kept paying for. That is the brief for the next hundred ads.</p>
+          <p class="ev"><strong>Evidence</strong> — Ad <code>m25445376691757464</code>, 29 Dec 2025 – 2 Mar 2026, 37s vertical video, eu.govee.com AI Sync Box 2 kit. Next-longest non-video ad: 19 days.</p>
+        </div>
+
+        <div class="finding">
+          <span class="f-tag">Finding · critical</span>
+          <h3>Video lasts 3× longer at the top, and gets 26% of output</h3>
+          <p>Both ads that ran past 20 days are video (67 d and 63 d), and video fills 3 of the top 10. Yet only <strong>49 of 190 ads (26%) are video</strong> against 129 static images (68%). The medians are the same at 3 days, because most videos were cut on the same schedule as the statics. The ones allowed to run show where the ceiling is.</p>
+          <p class="ev"><strong>Evidence</strong> — Format mix: image 129 (67.9%), video 49 (25.8%), carousel 12 (6.3%). Longest video runs 67, 63, 17, 16, 16 d; longest image runs 19, 19, 18, 18, 18 d.</p>
+        </div>
+
+        <div class="finding cobalt">
+          <span class="f-tag">Finding · watch</span>
+          <h3>The Christmas cohort was the only period Govee let statics run</h3>
+          <p>Seven of the top ten launched on 25–26 December 2023 and ran 17–19 days into mid-January. TV backlights and outdoor strips in the EU, UK and US, all still carrying the “High Quality &amp; Fast Delivery” headline. From February onward, no static ad passed 7 days. Flights got shorter as volume went up: 25 ads launched on 1 February and 22 on 28 December.</p>
+          <p class="ev"><strong>Evidence</strong> — Top-10 launches: 25 Dec 2023 ×5, 13 Mar 2024 ×2, 26 Jun 2024, 29 Dec 2025. Busiest launch days: 1 Feb 2024 (25 ads), 28 Dec 2023 (22), 5 Feb 2024 (13).</p>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="section" id="offer" style="--accent:var(--coral)">
+        <div class="section-head">
+          <p class="section-label">07 · Offer architecture</p>
+          <h2>The headline does no work</h2>
+          <p class="section-lead">Headline type across all 190 ads. The largest group isn't an offer or a product. It's a promise about shipping.</p>
+        </div>
+
+        <div class="bars">
+          <div class="bar"><span class="bl">Quality / shipping boilerplate<em>“High Quality &amp; Fast Delivery” ×54</em></span><span class="bt"><i class="coral" style="width:100%"></i></span><span class="bv">67 · 35%</span></div>
+          <div class="bar"><span class="bl">Product or feature name</span><span class="bt"><i class="dim" style="width:86.6%"></i></span><span class="bv">58 · 31%</span></div>
+          <div class="bar"><span class="bl">Seasonal sale<em>Valentine's ×21 · Easter · New Year</em></span><span class="bt"><i class="yellow" style="width:49.3%"></i></span><span class="bv">33 · 17%</span></div>
+          <div class="bar"><span class="bl">Price / discount<em>£40 off · 50% off · Only $35.99</em></span><span class="bt"><i class="yellow" style="width:23.9%"></i></span><span class="bv">16 · 8%</span></div>
+          <div class="bar"><span class="bl">Pay later<em>“Shop now, pay with Klarna.”</em></span><span class="bt"><i class="dim" style="width:14.9%"></i></span><span class="bv">10 · 5%</span></div>
+          <div class="bar"><span class="bl">No headline</span><span class="bt"><i class="dim" style="width:9%"></i></span><span class="bv">6 · 3%</span></div>
+          <p class="axis">Bars scaled to the largest group (67 ads). Shares are of 190 ads; each ad is counted once, by its headline.</p>
+        </div>
+
+        <div class="finding">
+          <span class="f-tag">Finding · critical</span>
+          <h3>A third of the headlines are about the courier</h3>
+          <p>“High Quality &amp; Fast Delivery” (54 ads), “Top Quality &amp; Fast Delivery” (9), “Fast Free Shipping” (3) and “High Quality &amp; Free Shipping!” (1) together take <strong>67 headlines, 35% of the account</strong>. On Meta the headline is the bold line under the creative, the second thing people read. Govee uses it to say what every electronics retailer says, while the product's real claims (colour, AI scenes, Matter, TV sync) sit in the emoji-led body above.</p>
+          <p>These headlines are also where the budget sat longest. The five longest-running statics all carry “High Quality &amp; Fast Delivery”, so there is no evidence the boilerplate was ever tested against a claim.</p>
+          <p class="ev"><strong>Evidence</strong> — Headline counts across 190 ads. Boilerplate appears on EU, UK and Instant Experience ads alike; US ads are more likely to carry a product name.</p>
+        </div>
+
+        <div class="finding yellow">
+          <span class="f-tag">Finding · watch</span>
+          <h3>Offers are sized per market and never unified</h3>
+          <p>In the same weeks Govee quoted <strong>“GET £50 OFF”</strong> (UK Lyra lamp), <strong>“Save 60€ off”</strong> (EU Lyra lamp), <strong>“UP TO 50% OFF”</strong> (EU strip lights), <strong>“Up To 50% Off Flash Sale”</strong> (US deals collection), <strong>“Buy 2 Save Extra 10% off”</strong> (US and CA) and <strong>“UP TO 35% OFF”</strong> (EU Easter). Six offer mechanics in one month, each in its own currency and ad set.</p>
+          <p>Holiday-anchored discounts are sound, and Govee is right to tie sales to real events. What's missing is one headline offer per event that the whole account repeats, so the discount builds recognition rather than resetting with every ad set.</p>
+          <p class="ev"><strong>Evidence</strong> — Late-March 2024 ads: m7034160570027106 (£50), m1397310187597690 (60€), m1452283858738704 (50%), m2068852146824106 (50% flash), m444162878034877 / m408927551753233 (Buy 2 save 10%), m276589158867289 (35%).</p>
+        </div>
+      </section>
+
+      <!-- 08 -->
+      <section class="section" id="message" style="--accent:var(--cobalt)">
+        <div class="section-head">
+          <p class="section-label">08 · The message map</p>
+          <h2>Four templates, one voice</h2>
+          <p class="section-lead">Strip the product names and Govee's body copy is four templates. Three are catalogue listings. One is a person.</p>
+        </div>
+        <div class="specimens">
+          <div class="spec">
+            <p class="sp-n">Template 01 — the emoji listing</p>
+            <p class="sp-copy">😘Govee LED Smart Floor Lamp
+✨Brighten up any indoor living space.
+🛒Shop Now &gt;&gt; https://bit.ly/3pW4gXh</p>
+            <p class="sp-meta">The house style on EU and UK ads · three lines, a bit.ly link and no claim a competitor couldn't make</p>
+          </div>
+          <div class="spec">
+            <p class="sp-n">Template 02 — the checklist</p>
+            <p class="sp-copy">😍Govee Neon Rope Light 2
+✅Upgraded Bend Clips
+✅Matter Compatible
+✅AI Lighting Bot
+🛒Explore More &gt;&gt; https://bit.ly/3wOnfWT</p>
+            <p class="sp-meta">The only template that lists real differentiators (Matter, AI) · seen on Neon Rope Light 2 and RGBICW strips</p>
+          </div>
+          <div class="spec">
+            <p class="sp-n">Template 03 — the US feature line</p>
+            <p class="sp-copy">Invite colorful displays of light to any outdoor space with these LED floodlights. 🎨🌠 With over 16 million color options, you can customize each floodlight to expand your creativity.</p>
+            <p class="sp-meta">US ads · full sentences, a spec number, still no proof · e.g. “Withstands -4°F to 140°F, 50,000 hours of brilliance.”</p>
+          </div>
+          <div class="spec">
+            <p class="sp-n">Template 04 — the customer's living room</p>
+            <p class="sp-copy">I installed new LED lights behind my TV, and I love how it turned out! The box connects to the TV and makes the lights change color and flash in perfect sync with whatever I'm playing.
+I can also set up my own scenes or tell the Govee AI what kind of scene I would want to see, and it will create something for me.</p>
+            <p class="sp-meta">1 ad · 63 days · the second-longest run on the page and the only first-person copy</p>
+          </div>
+        </div>
+
+        <div class="finding cobalt">
+          <span class="f-tag">Finding · opportunity</span>
+          <h3>“Most popular smart lighting brand on Amazon” never appears in an ad</h3>
+          <p>Govee's own page description leads with <em>“Most popular smart lighting brand on Amazon”</em>, the strongest proof claim in the category. None of the 60 full ad bodies pulled for this report uses it, or any star rating, review count or units-sold figure. The brand sends 20 ads to Amazon listings where those reviews are on show, but never puts them in the ad that sends people there.</p>
+          <p class="ev"><strong>Evidence</strong> — Advertiser description (Atria profile, 3 Mar 2026). Social-proof language in 0 of 60 ad bodies reviewed (every ad in the board and endurance cohorts plus 25 more). 20 ads to amazon.de / amazon.com.</p>
+        </div>
+
+        <div class="finding cobalt">
+          <span class="f-tag">Finding · watch</span>
+          <h3>Two links in every ad</h3>
+          <p>The house template puts a <code>bit.ly</code> link in the body copy (“🛒Explore More &gt;&gt; https://bit.ly/…”) above a Shop Now button pointing at a UTM-tagged storefront URL. The body link goes through Facebook's link shim, and the bit.ly and the button can land on different pages. In the Neon Rope Light 2 EU ad the button goes to the PDP while the body link is a separate short URL. That splits the click and weakens attribution on the one path Meta can measure.</p>
+          <p class="ev"><strong>Evidence</strong> — bit.ly links in body copy across EU/UK board ads, e.g. m1018616102983339 (bit.ly/3wOnfWT), m723174829943331 (bit.ly/3pW4gXh), m387085164131353 (bit.ly/495sVJz → CTA points to /collections/indoor-strip-lights).</p>
+        </div>
+      </section>
+
+      <!-- 09 -->
+      <section class="section" id="audience" style="--accent:var(--magenta)">
+        <div class="section-head">
+          <p class="section-label">09 · Markets &amp; catalogue</p>
+          <h2>One page, four storefronts</h2>
+          <p class="section-lead">Govee's page isn't followed in Atria, so persona and emotion tagging isn't available. The split that does exist is geographic. One page ran EU, UK, US and Canadian storefronts plus two Amazon marketplaces, and the EU got the most ads.</p>
+        </div>
+        <div class="bars">
+          <div class="bar"><span class="bl">eu.govee.com</span><span class="bt"><i class="dim" style="width:100%"></i></span><span class="bv">77 · 41%</span></div>
+          <div class="bar"><span class="bl">us.govee.com<em>the brand's home market</em></span><span class="bt"><i class="coral" style="width:62.3%"></i></span><span class="bv">48 · 25%</span></div>
+          <div class="bar"><span class="bl">uk.govee.com</span><span class="bt"><i class="dim" style="width:39%"></i></span><span class="bv">30 · 16%</span></div>
+          <div class="bar"><span class="bl">Amazon (DE 14 · US 6)<em>Amazon Attribution links</em></span><span class="bt"><i class="yellow" style="width:26%"></i></span><span class="bv">20 · 11%</span></div>
+          <div class="bar"><span class="bl">Meta Instant Experience</span><span class="bt"><i class="dim" style="width:16.9%"></i></span><span class="bv">13 · 7%</span></div>
+          <div class="bar"><span class="bl">ca.govee.com</span><span class="bt"><i class="dim" style="width:2.6%"></i></span><span class="bv">2 · 1%</span></div>
+          <p class="axis">Destination host across 190 ads; bars scaled to the largest (77).</p>
+        </div>
+
+        <div class="bars">
+          <div class="bar"><span class="bl">Floor lamps<em>RGBICW corner · Lyra</em></span><span class="bt"><i class="lime" style="width:100%"></i></span><span class="bv">24</span></div>
+          <div class="bar"><span class="bl">TV backlights<em>3 Lite · Envisual T2 · DreamView T1 · AI Sync Box 2</em></span><span class="bt"><i class="lime" style="width:95.8%"></i></span><span class="bv">23</span></div>
+          <div class="bar"><span class="bl">Neon Rope Light 2<em>incl. Amazon DE / US</em></span><span class="bt"><i class="lime" style="width:95.8%"></i></span><span class="bv">23</span></div>
+          <div class="bar"><span class="bl">Sale &amp; event pages</span><span class="bt"><i class="dim" style="width:87.5%"></i></span><span class="bv">21</span></div>
+          <div class="bar"><span class="bl">Outdoor &amp; permanent lights</span><span class="bt"><i class="lime" style="width:70.8%"></i></span><span class="bv">17</span></div>
+          <div class="bar"><span class="bl">LED strips<em>M1 · RGBICW · with covers</em></span><span class="bt"><i class="lime" style="width:70.8%"></i></span><span class="bv">17</span></div>
+          <div class="bar"><span class="bl">Curtain lights</span><span class="bt"><i class="lime" style="width:58.3%"></i></span><span class="bv">14</span></div>
+          <div class="bar"><span class="bl">Instant Experiences</span><span class="bt"><i class="dim" style="width:54.2%"></i></span><span class="bv">13</span></div>
+          <div class="bar"><span class="bl">Collections</span><span class="bt"><i class="dim" style="width:50%"></i></span><span class="bv">12</span></div>
+          <div class="bar"><span class="bl">Neon LED strip</span><span class="bt"><i class="lime" style="width:37.5%"></i></span><span class="bv">9</span></div>
+          <div class="bar"><span class="bl">Glide wall panels</span><span class="bt"><i class="lime" style="width:33.3%"></i></span><span class="bv">8</span></div>
+          <div class="bar"><span class="bl">Galaxy projector</span><span class="bt"><i class="lime" style="width:25%"></i></span><span class="bv">6</span></div>
+          <div class="bar"><span class="bl">Recessed &amp; downlights</span><span class="bt"><i class="lime" style="width:12.5%"></i></span><span class="bv">3</span></div>
+          <p class="axis">Ads by product line, classified from the destination URL; bars scaled to the largest (24).</p>
+        </div>
+
+        <div class="finding magenta">
+          <span class="f-tag">Finding · watch</span>
+          <h3>The US gets a quarter of the ads, on a US brand page</h3>
+          <p>Govee's largest market and this report's subject storefront, <code>us.govee.com</code>, receives <strong>48 of 190 ads (25%)</strong>, fewer than the EU's 77. Twelve products appear in two or three storefronts at once, each as a separate ad with its own headline and offer. The page is shared across markets, but the creative, testing and learning are split by storefront.</p>
+          <p class="ev"><strong>Evidence</strong> — Products live in 2–3 storefronts simultaneously: Neon Rope Light 2, RGBICW floor lamp, Lyra lamp, Glide Hexa, LED Strip M1, Neon LED strip, TV Backlight 3 Lite, DreamView T1, string downlights, curtain lights, RGBICWW outdoor strips, Phantasy outdoor strips.</p>
+        </div>
+
+        <div class="finding yellow">
+          <span class="f-tag">Finding · watch</span>
+          <h3>A typo in the UTM is splitting reporting</h3>
+          <p>Four LED Strip M1 ads on eu.govee.com carry <code>utm_medium=paid+scoial</code> instead of <code>paid+social</code>. Two more ads carry the campaign macro URL-encoded (<code>%7B%7Bcampaign.name%7D%7D</code>) rather than as a live macro. Small on their own, but any report grouped by medium or campaign drops these ads from the paid-social total.</p>
+          <p class="ev"><strong>Evidence</strong> — paid+scoial: m414472867892091, m410368321649240, m322546290652614, m904436277715162. Encoded macro: m335090185761691, m893564062490243.</p>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section class="section" id="pages" style="--accent:var(--yellow)">
+        <div class="section-head">
+          <p class="section-label">10 · Landing pages</p>
+          <h2>Where 190 ads send people</h2>
+          <p class="section-lead">Seventy-one distinct destinations, none carrying more than 7% of ads. The table groups them by what they are. <strong>Page-level content (hero, offer, proof, speed) is still to come:</strong> the landing-page capture from Atria will be added here, as govee.com can't be reached from this environment.</p>
+        </div>
+
+        <div class="pending">
+          <span class="pd-tag">Awaiting data · Atria landing-page export</span>
+          <h3>Top landing pages, captured</h3>
+          <p>For each destination below: screenshot, hero headline, offer shown above the fold, proof modules (stars, reviews, “#1 on Amazon”), price and CTA. This will turn the URL table into a page-by-page teardown.</p>
+        </div>
+
+        <div class="tblwrap">
+          <table class="lptable">
+            <thead><tr><th>Destination</th><th>Ads</th><th>Share</th><th>Longest run</th><th>State</th></tr></thead>
+            <tbody>
+              <tr><td>Meta Instant Experiences<span class="u">fb.com/canvas_doc/… · 13 separate docs</span></td><td>13</td><td>6.8%</td><td>17 d</td><td><span class="pill warn">Diffuse</span></td></tr>
+              <tr><td>Neon Rope Light 2 · Amazon DE<span class="u">amazon.de/dp/B0CQRBC3Y2 (+ store page, 5 more)</span></td><td>14</td><td>7.4%</td><td>18 d</td><td><span class="pill warn">Off-site</span></td></tr>
+              <tr><td>Curtain Lights PDP<span class="u">eu.govee.com + uk.govee.com /products/govee-curtain-lights</span></td><td>14</td><td>7.4%</td><td>5 d</td><td><span class="pill bad">Split</span></td></tr>
+              <tr><td>TV Backlight 3 Lite PDP<span class="u">eu / uk / us /products/govee-tv-backlight-3-lite</span></td><td>13</td><td>6.8%</td><td>19 d</td><td><span class="pill bad">Split</span></td></tr>
+              <tr><td>RGBICW Corner Floor Lamp PDP<span class="u">eu / uk / us /products/govee-rgbicw-smart-corner-floor-lamp</span></td><td>13</td><td>6.8%</td><td>15 d</td><td><span class="pill bad">Split</span></td></tr>
+              <tr><td>Valentine's Day page<span class="u">us / eu / uk /pages/valentines-day</span></td><td>10</td><td>5.3%</td><td>4 d</td><td><span class="pill ok">Seasonal</span></td></tr>
+              <tr><td>Lyra Floor Lamp PDP<span class="u">eu / uk /products/govee-lyra-rgbic-corner-floor-lamp · us /govee-lyra-floor-lamp</span></td><td>11</td><td>5.8%</td><td>15 d</td><td><span class="pill bad">Split</span></td></tr>
+              <tr><td>Neon Rope Light 2 PDP<span class="u">eu / us /products/govee-neon-rope-light-2</span></td><td>6</td><td>3.2%</td><td>67 d</td><td><span class="pill ok">Proven</span></td></tr>
+              <tr><td>Envisual TV Backlight T2 PDP<span class="u">eu.govee.com /products/govee-envisual-tv-backlight-t2</span></td><td>7</td><td>3.7%</td><td>15 d</td><td><span class="pill ok">Healthy</span></td></tr>
+              <tr><td>Permanent Outdoor Lights PDPs<span class="u">us /govee-rgbic-led-permanent-outdoor-lights · /govee-rgbicww-led-permanent-outdoor-lights</span></td><td>7</td><td>3.7%</td><td>18 d</td><td><span class="pill warn">Two SKUs</span></td></tr>
+              <tr><td>AI Sync Box 2 kit PDP<span class="u">eu.govee.com /products/govee-ai-sync-box-kit-2</span></td><td>1</td><td>0.5%</td><td>63 d</td><td><span class="pill ok">Proven</span></td></tr>
+              <tr><td>All remaining destinations<span class="u">48 further URLs: other PDPs, New Year / Easter / deals pages, collections, refurbished, Amazon US</span></td><td>81</td><td>42.6%</td><td>16 d</td><td><span class="pill warn">Long tail</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="finding">
+          <span class="f-tag">LP 01 · critical</span>
+          <h3>The two proven ads point at pages nobody else uses</h3>
+          <p>The Neon Rope Light 2 EU PDP carried the 67-day ad and the AI Sync Box 2 kit PDP carried the 63-day ad. Together those two pages hold <strong>the only creative on this page that ran past three weeks</strong>. The AI Sync Box 2 page got exactly one ad. The EU Neon Rope page got four, and its US twin two. Meanwhile curtain lights took 14 ads, none running more than 5 days.</p>
+          <p class="ev"><strong>Evidence</strong> — eu /govee-neon-rope-light-2: 4 ads, longest 67 d. eu /govee-ai-sync-box-kit-2: 1 ad, 63 d. Curtain lights (eu + uk): 14 ads, longest 5 d.</p>
+        </div>
+
+        <div class="finding yellow">
+          <span class="f-tag">LP 02 · watch</span>
+          <h3>One in nine ads sends the buyer to Amazon</h3>
+          <p>20 ads (11%) point at Amazon listings through Amazon Attribution tags: 14 to amazon.de (the German Easter “Ostern Thema Lichteffekt” carousels and Neon Rope Light 2) and 6 to amazon.com (Neon Rope Light 2 and the Galaxy Light Projector Pro). This is a reasonable choice for review-led conversion, but the Meta pixel sees none of those purchases, so the ad sets optimise blind. The four Galaxy Projector ads to amazon.com ran 0 days.</p>
+          <p class="ev"><strong>Evidence</strong> — amazon.de/dp/B0CQRBC3Y2 ×9, amazon.de store page ×5, amazon.com/dp/B0CQN1B4JM ×2, amazon.com/dp/B0CCRHQDR5 ×4 (all 0 d).</p>
+        </div>
+
+        <div class="finding">
+          <span class="f-tag">LP 03 · critical</span>
+          <h3>Thirteen Instant Experiences, no two the same</h3>
+          <p>The largest single destination type is Meta's Instant Experience, but it is <strong>13 different canvas documents</strong> across 13 ads, each built once and used once. Headlines on these ads (“Shop now, pay with Klarna.”, “Expand Your Entertainment”, “Making Life Smarter”) suggest a different brief each time. The best-performing ran 17 days. An Instant Experience is worth building when it gets reused and improved, and these weren't.</p>
+          <p class="ev"><strong>Evidence</strong> — 13 distinct fb.com/canvas_doc IDs, one ad each, runs 0–17 d. Longest: “Expand Your Entertainment” (m397402856342133, 17 d).</p>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section class="section" id="plan" style="--accent:var(--lime)">
+        <div class="section-head">
+          <p class="section-label">11 · The plan</p>
+          <h2>Ninety days, fewer launches</h2>
+          <p class="section-lead">Govee doesn't need more creative. It needs to let fewer ads run longer, in one voice, across markets. Each play names the number it should move.</p>
+        </div>
+        <div class="plan">
+          <div class="play" style="--accent:var(--coral)">
+            <p class="pl-when">This week · critical</p>
+            <h3>Replace the shipping headline</h3>
+            <ul>
+              <li>Swap “High / Top Quality &amp; Fast Delivery” on every live ad for a <strong>claim headline</strong>: “Syncs to your TV in 60 seconds”, “16M colours. One app.”, “Works with Matter”.</li>
+              <li>Fix <strong>utm_medium=paid+scoial</strong> and the URL-encoded campaign macro so paid-social reporting is whole.</li>
+              <li>Drop the bit.ly link from body copy. One ad, one destination.</li>
+            </ul>
+            <p class="pl-metric">Moves message diversity <strong>3 → 5</strong>. Watch CTR on the headline swap, ad for ad, and outbound CTR vs. link clicks.</p>
+          </div>
+          <div class="play" style="--accent:var(--coral)">
+            <p class="pl-when">Weeks 1–2 · critical</p>
+            <h3>Set a 14-day floor before anything is cut</h3>
+            <ul>
+              <li>No new ad is paused before <strong>14 days or its learning phase</strong>, whichever comes first, unless it breaches a hard CPA ceiling.</li>
+              <li>Launch <strong>weekly, not daily</strong>. The 25-ads-on-1-February pattern starves every ad set of data.</li>
+            </ul>
+            <p class="pl-metric">Moves creative endurance <strong>2 → 5</strong>. Target median run ≥ 14 d (from 3 d).</p>
+          </div>
+          <div class="play" style="--accent:var(--yellow)">
+            <p class="pl-when">Weeks 2–6 · critical</p>
+            <h3>One hero per quarter, one offer per event</h3>
+            <ul>
+              <li>Pick a <strong>hero SKU per quarter</strong> (AI Sync Box 2 / TV backlights for Q4, which the 63-day ad already supports) and give it 40% of new ads.</li>
+              <li>For each holiday, run <strong>one offer line</strong> in every storefront (“Up to 40% off, Black Friday”), localised for currency only.</li>
+            </ul>
+            <p class="pl-metric">Moves offer discipline <strong>4 → 7</strong>. Watch share of spend on hero and blended CAC across markets.</p>
+          </div>
+          <div class="play" style="--accent:var(--cobalt)">
+            <p class="pl-when">Weeks 2–6 · opportunity</p>
+            <h3>Scale the creator voice</h3>
+            <ul>
+              <li>Brief <strong>10 creators</strong> on the AI Sync Box 2 format: first person, their own room, one feature shown working (TV sync, AI scene from a photo).</li>
+              <li>Run them as partnership ads from the creator's handle, pointed at the storefront PDP.</li>
+              <li>Take video from 26% of output to <strong>50%</strong>.</li>
+            </ul>
+            <p class="pl-metric">Moves creative endurance <strong>5 → 7</strong>. Watch thumb-stop rate and run length vs. the emoji-listing static.</p>
+          </div>
+          <div class="play" style="--accent:var(--lime)">
+            <p class="pl-when">Weeks 6–12 · opportunity</p>
+            <h3>Put Amazon's proof in the ad</h3>
+            <ul>
+              <li>Lead with the brand's own line, <strong>“The most popular smart lighting brand on Amazon”</strong>, plus the hero SKU's star rating and review count.</li>
+              <li>Keep the Amazon-bound ads, but give them the review-count creative, and send owned-site traffic to PDPs with the same proof above the fold.</li>
+            </ul>
+            <p class="pl-metric">Moves proof deployment <strong>2 → 6</strong>. Watch CVR on owned PDPs vs. Amazon attribution ROAS.</p>
+          </div>
+          <div class="play" style="--accent:var(--magenta)">
+            <p class="pl-when">Weeks 6–12 · opportunity</p>
+            <h3>Collapse destinations</h3>
+            <ul>
+              <li>From 71 destinations to <strong>under 20</strong>: one PDP per hero per market, one deals page per event, <strong>one reusable Instant Experience</strong>.</li>
+              <li>Give the US storefront at least its share of revenue in ads. It currently gets 25%.</li>
+            </ul>
+            <p class="pl-metric">Moves traffic architecture <strong>2 → 6</strong>. Watch ads per destination (from 2.7 to 10+) and PDP conversion confidence.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 -->
+      <section class="section" id="method" style="--accent:var(--cobalt)">
+        <div class="section-head">
+          <p class="section-label">12 · Method</p>
+          <h2>Method &amp; limits</h2>
+          <p class="section-lead">Every figure here comes from the 190 ads Atria holds for Govee's Meta page (advertiser <code>m110849893092563</code>), observed through the Meta Ad Library. The record was last refreshed on 3 March 2026 and holds no active ads.</p>
+        </div>
+        <div class="defs">
+          <div class="def">
+            <p class="dnum">01 — What the data is</p>
+            <h3>One page's history, not today's account</h3>
+            <p>187 of the 190 ads launched between 21 December 2023 and 29 March 2024. <strong>This is a historical record of one Govee page, not a live view of Govee's Meta spend.</strong> Govee almost certainly advertises today through other pages, regional accounts and creator partnerships that aren't in this record. Other advertisers in the library run Govee products (Amazon UK, Currys, the Dallas Mavericks sponsorship), but they aren't counted here.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">02 — Impression order</p>
+            <h3>No rank on record</h3>
+            <p>Section 04 uses Atria's “most impressions” sort as requested, but <strong>none of Govee's ads carries an impression rank</strong>. Filtering for ranked ads returns zero, and the order matches launch date. The board is therefore the 25 most recent ads, not a delivery ranking. Sections 03 and 06 use observed run length, the one signal of the brand's own choices.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">03 — What the data is not</p>
+            <h3>No spend, no revenue, no tags</h3>
+            <p>No spend, revenue, ROAS or conversion figure here is observed, because none of it is public. Govee's page isn't followed in Atria, so <strong>persona, emotion, hook and theme tags aren't available</strong>. Headline and product classifications on this page are rule-based, from headline text and destination URL. Full body copy was reviewed for 60 of the 190 ads.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">04 — Creative assets</p>
+            <h3>Hotlinked, not hosted</h3>
+            <p>Ad images and video files load directly from <code>cdn.tryatria.com</code> rather than being copied into this site. MP4s are linked for 6 videos. The rest were rate-limited during capture and link to their Meta Ad Library entry. If a file is unavailable the card shows a placeholder and keeps its links.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">05 — Pending inputs</p>
+            <h3>AdSpy and landing pages</h3>
+            <p>Section 05 (top 25 by AdSpy likes) and the page captures in section 10 are <strong>still to come</strong>. AdSpy needs a logged-in session and govee.com is blocked by this environment's network proxy. Both will be added from a browser capture and an Atria landing-page export. Everything else on this page is final for the record as it stands.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">06 — Typography</p>
+            <h3>PP Mori substituted</h3>
+            <p>This page is built to the reference deep-dive's design system. <strong>PP Mori</strong> is a commercial Pangram Pangram face that isn't on Google Fonts, so <strong>Archivo</strong> stands in at the same weights. “PP Mori” stays first in every font stack, so self-hosting the files picks them up with no other change. Space Mono is the reference face exactly.</p>
+          </div>
+          <div class="def">
+            <p class="dnum">07 — Reference</p>
+            <h3>Design lineage</h3>
+            <p>Palette, type scale, layout grid and component set are replicated from the Rosabella / Solawave Meta deep-dive template: oklch warm-ivory ground with coral, cobalt, lime, yellow and magenta section accents; 1,380px shell; sticky numbered run-order rail; per-section accent inheritance.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div><strong>Govee · Meta deep-dive</strong><br>Advertiser m110849893092563 · 241,445 page likes · 190 ads all-time</div>
+        <div>Record Dec 2023 – Mar 2026<br>Data as of 2026-03-03 (Atria refresh)</div>
+        <div>Source: Meta Ad Library via Atria<br>Run length is the brand's choice, not performance</div>
+        <div><a href="#top">↑ Back to top</a></div>
+      </footer>
+
+    </main>
+  </div>
+</div>
+
+<script>
+const CDN = "https://cdn.tryatria.com/adfiles/";
+const AL  = "https://www.facebook.com/ads/library/?id=";
+const ROPE_EU = "✨Add a vibrant touch to any room with the Govee Neon Rope Light 2.\n🛒Explore More >> https://bit.ly/3wOnfWT\n#neonlights #lighting #homedecor #ledstrip";
+const LAMP_EU = "😘Govee LED Smart Floor Lamp\n✨Brighten up any indoor living space.\n🛒Shop Now >> https://bit.ly/4biCFCH\n#lighting #floorlamp #home";
+const LUMEN = "Get ready to elevate your home's ambiance with our vibrant LED strip light! ✨🎨\nExperience a richer color performance and create a unique display of colors across your walls.";
+const EASTER = "😍UP TO 35% OFF⏰ Limited Time\n🐇Hop on Over to Easter Fun\n🛒Shop Now >> https://bit.ly/3PG2uDx";
+const REFURB = "✨Govee Refurbished Products Sale✨\n😎Immerse yourself in multicolored entertainment.\n🛒Shop Now >> https://bit.ly/3v1vazC";
+const CORNER_US = "🎨 Get the most out of your home's corner space with our colorful floor lamp! ✨\nDon't settle for a dull and boring living area. Make it come alive today by getting yours now.";
+const TVB3 = "😍Govee TV Backlight 3 Lite\n✨An Upgraded Entry for Your Movie Nights\n🛒Explore More >> https://bit.ly/3R7wObh";
+const TVB3_25 = "❤️GET 25% OFF😘Govee TV Backlight 3 Lite\n✨An Upgraded Entry for Your Movie Nights\n🛒Explore More >> https://bit.ly/3QPxSyS";
+const SYNC = "#advertising\nI installed new LED lights behind my TV, and I love how it turned out! The box connects to the TV and makes the lights change color and flash in perfect sync with whatever I'm playing.\nI can also set up my own scenes or tell the Gove AI what kind of scene I would want to see, and it will create something for me. Or I can provide a picture to show what kind of effect or color palette I have in mind.\nThe set is called Govee AI Sync Box 2! You can find the direct link in my bio! 😊\n#govee #ledlights #smartlights #ambientlight #gaming #instagamer";
+
+// First 25 ads in Atria's "most impressions" order for page m110849893092563.
+// No Govee ad carries an impression rank, so the order falls back to launch date.
+const board = [
+ {r:1,  id:"m25445376691757464", hl:"AI Sync Box 2 (no headline)", fmt:"Video 37s", img:"m25445376691757464_OyIhywbdAvc.jpeg", vid:"m25445376691757464_QhSkkBt1UrM.mp4", copy:SYNC, themes:"Creator voice · #advertising · TV sync", dest:"eu · AI Sync Box 2 kit PDP", run:"63 d", from:"29 Dec 2025", note:"The only first-person ad on the page, and its only 2025–26 ad."},
+ {r:2,  id:"m486128020934192", hl:"Govee Outdoor Wall Light", fmt:"Video 41s", img:"m486128020934192_rbcx02Ls500.jpeg", vid:"m486128020934192_tlvKwBeTWFI.mp4", copy:"With 45 stunning scene modes, Govee Smart Outdoor Wall Lights bring impressive possibilities to your outdoor space.", themes:"Feature · outdoor", dest:"us · Outdoor Wall Light PDP", run:"3 d", from:"29 Aug 2024"},
+ {r:3,  id:"m1018616102983339", hl:"Top Quality & Fast Delivery", fmt:"Video 41s", img:"m1018616102983339_bAZ4szw0zis.jpeg", vid:"m1018616102983339_GzufObKn05E.mp4", copy:ROPE_EU, themes:"Emoji listing · Neon Rope Light 2", dest:"eu · Neon Rope Light 2 PDP", run:"67 d", from:"26 Jun 2024", note:"Longest-running ad on the page."},
+ {r:4,  id:"m1091596435448946", hl:"High Quality & Fast Delivery", fmt:"Video 14s · dynamic", img:"m1091596435448946_WzdYtIBrnUI.jpeg", copy:LAMP_EU, themes:"Emoji listing · floor lamp", dest:"eu · RGBICW corner lamp PDP", run:"2 d", from:"29 Mar 2024"},
+ {r:5,  id:"m1452283858738704", hl:"UP TO 50% OFF", fmt:"Image", img:"m1452283858738704_7C5n-PNpt_k.jpeg", copy:"😍Govee RGBICW LED Strip Lights\n✅Year-Round Use\n✅Cozy Warm White Light\n✅Smart and Easy Control\n🛒Explore More >> https://bit.ly/3P1Iprr", themes:"Checklist · discount", dest:"eu · RGBICW strip PDP", run:"2 d", from:"29 Mar 2024"},
+ {r:6,  id:"m1473978296867778", hl:"Govee Smart Retrofit Recessed Lights", fmt:"Image · dynamic", img:"m1473978296867778___188hdTzcg.jpeg", copy:"Govee Retrofit Downlights add vibrancy to your home! ✨ Get yours now and experience a new way to brighten up any room.", themes:"Feature · new category", dest:"us · Retrofit recessed PDP", run:"1 d", from:"29 Mar 2024"},
+ {r:7,  id:"m2068852146824106", hl:"Up To 50% Off Flash Sale", fmt:"Image", img:"m2068852146824106_9f2QhDTf1k8.jpeg", copy:"🚨 Upgrade Your Home Lighting with Govee!\nGet the Best Deal for You Now and Brighten up Your Space Today!", themes:"Discount · flash sale", dest:"us · featured-deals collection", run:"1 d", from:"29 Mar 2024"},
+ {r:8,  id:"m276589158867289", hl:"Easter Day Sale-2024", fmt:"Image", img:"m276589158867289_6AdByVtm0Hg.jpeg", copy:EASTER, themes:"Seasonal · discount", dest:"eu · Easter sale page", run:"2 d", from:"29 Mar 2024"},
+ {r:9,  id:"m3531140650531036", hl:"Easter Day Sale-2024", fmt:"Image", img:"m3531140650531036_sNDHQRmsBX0.jpeg", copy:EASTER, themes:"Seasonal · discount", dest:"eu · Easter sale page", run:"2 d", from:"29 Mar 2024"},
+ {r:10, id:"m3714147708905441", hl:"Govee Phantasy Outdoor LED Strip Lights", fmt:"Image · dynamic", img:"m3714147708905441_baZtz71BTGM.jpeg", copy:"Only $35.99! 🌞✨The new addition to the strip light family will not disappoint when it comes to transforming your indoor/outdoor look. Get yours now!", themes:"Price-led", dest:"ca · Phantasy strip PDP", run:"2 d", from:"29 Mar 2024"},
+ {r:11, id:"m387085164131353", hl:"High Quality & Fast Delivery", fmt:"Video 41s", img:"m387085164131353_ful0Nf3f0Cc.jpeg", vid:"m387085164131353_S-rrzJsqeLQ.mp4", copy:"😍Add a vibrant touch to any room with the Govee Neon Rope Light 2.\n🛒Explore More >> https://bit.ly/495sVJz", themes:"Emoji listing", dest:"eu · indoor strip collection", run:"2 d", from:"29 Mar 2024", note:"Body link and CTA point at different pages."},
+ {r:12, id:"m429153742960484", hl:"Shop now, pay with Klarna.", fmt:"Video 27s", img:"m429153742960484_w2z51i946O0.jpeg", copy:REFURB, themes:"Refurbished · pay later", dest:"eu · refurbished collection", run:"2 d", from:"29 Mar 2024"},
+ {r:13, id:"m949852080474353", hl:"Slender and Softer", fmt:"Image · dynamic", img:"m949852080474353_aYIg7VL6kuo.jpeg", copy:"🎥 Wanna level up your movie and music vibes?\nNeon Rope Lights 2 is the bomb! ✨ It's all about adding that extra magic to any kind of flick or tunes.\nThese ropes lights are easy peasy to hook up with Alexa or Google, so you can choose a light mode that fits your mood perfectly.", themes:"Use case · voice assistant", dest:"us · Neon Rope Light 2 PDP", run:"1 d", from:"29 Mar 2024"},
+ {r:14, id:"m952525796177614", hl:"Shop now, pay with Klarna.", fmt:"Video 27s", img:"m952525796177614_PFjDoGfubRU.jpeg", copy:"✨Govee Refurbished Products Sale✨\n😎Immerse yourself in multicolored entertainment.\n🛒Shop Now >> https://bit.ly/3v1vazC", themes:"Refurbished · pay later", dest:"uk · refurbished collection", run:"1 d", from:"29 Mar 2024"},
+ {r:15, id:"m1765750407169475", hl:"Easter decor (no headline)", fmt:"Video 23s", img:"m1765750407169475__ThADJNuHBw.jpeg", copy:"Colorful decor even the Easter Bunny approves of.🐰 If you're using Govee in your colorful #Easter decorations, post & tag us so we can see! #GoveeNeonLights\n#govee #easterdecor #holiday #lighting #homeinspo", themes:"Seasonal · UGC call-out", dest:"Amazon DE · Neon Rope Light 2", run:"3 d", from:"28 Mar 2024"},
+ {r:16, id:"m1768774130275741", hl:"Higher Lumen, More Natural Color", fmt:"Image · dynamic", img:"m1768774130275741_pXQNMhef2-Y.jpeg", copy:LUMEN, themes:"Feature · brightness", dest:"us · RGBICW bedroom strip PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:17, id:"m414496717937522", hl:"Top Quality & Fast Delivery", fmt:"Video 14s · dynamic", img:"m414496717937522_D5SPT_L4qtM.jpeg", copy:ROPE_EU, themes:"Emoji listing", dest:"eu · Neon Rope Light 2 PDP", run:"3 d", from:"28 Mar 2024"},
+ {r:18, id:"m416928620922520", hl:"Govee Neon Rope Light 2", fmt:"Video 6s", img:"m416928620922520_iYfRRlTasus.jpeg", vid:"m416928620922520__I6J1Lof9RE.mp4", copy:"Getting your creativity on!🐬 Create, design & make something amazing today. Try our new neon rope lights 2 now and start creating like a pro!", themes:"DIY · creativity", dest:"us · strip-lights collection", run:"2 d", from:"28 Mar 2024"},
+ {r:19, id:"m680229867502674", hl:"High Quality & Fast Delivery", fmt:"Video 47s", img:"m680229867502674_WwgVSZCNSNQ.jpeg", copy:"🥳Upgrade Your Home Lighting with Govee!\n🛒Explore More >> https://bit.ly/4crQkrB", themes:"Generic brand", dest:"Instant Experience", run:"2 d", from:"28 Mar 2024"},
+ {r:20, id:"m7034160570027106", hl:"Govee Lyra RGBICWW Floor Lamp", fmt:"Image", img:"m7034160570027106_IivaaRIk7k8.jpeg", copy:"✨GET £50 OFF ⏰Limited Time\n🥳Upgrade Your Home Lighting with Govee!\n🛒Explore More >> https://bit.ly/3V02dyz", themes:"Discount · scarcity", dest:"uk · Lyra lamp PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:21, id:"m716257364003504", hl:"Higher Lumen, More Natural Color", fmt:"Image · dynamic", img:"m716257364003504_hgeo63a7FuE.jpeg", copy:LUMEN, themes:"Feature · brightness", dest:"us · RGBICW bedroom strip PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:22, id:"m723174829943331", hl:"Top Quality & Fast Delivery", fmt:"Video 14s", img:"m723174829943331_EF66znqs0pw.jpeg", vid:"m723174829943331_Hd-jwl9Enhw.mp4", copy:"😍Govee LED Smart Floor Lamp\n✨Brighten up any indoor living space.\n🛒Shop Now >> https://bit.ly/3pW4gXh", themes:"Emoji listing · floor lamp", dest:"uk · RGBICW corner lamp PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:23, id:"m942266020755303", hl:"Colorful Outdoor Experience", fmt:"Image · dynamic", img:"m942266020755303_B5rG2bmBB4Q.jpeg", copy:"Invite colorful displays of light to any outdoor space with these LED floodlights. 🎨🌠With over 16 million color options, you can customize each floodlight to expand your creativity.", themes:"Feature · outdoor", dest:"us · RGBICWW flood lights PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:24, id:"m958650575825431", hl:"Higher Lumen, More Natural Color", fmt:"Image · dynamic", img:"m958650575825431_i4Cn0BggqLc.jpeg", copy:LUMEN, themes:"Feature · brightness", dest:"us · RGBICW bedroom strip PDP", run:"2 d", from:"28 Mar 2024"},
+ {r:25, id:"m1112517320068068", hl:"RGBICW Floor Lamp", fmt:"Video 13s · dynamic", img:"m1112517320068068_T9MRPeVZ6Pk.jpeg", copy:CORNER_US, themes:"Feature · floor lamp", dest:"us · RGBICW corner lamp PDP", run:"3 d", from:"27 Mar 2024"}
+];
+
+const endurance = [
+ {r:1,  id:"m1018616102983339", hl:"Top Quality & Fast Delivery", fmt:"Video 41s", img:"m1018616102983339_bAZ4szw0zis.jpeg", vid:"m1018616102983339_GzufObKn05E.mp4", run:"67 d", from:"26 Jun 2024", dest:"eu · Neon Rope Light 2", note:"The longest run on the page, 22× the median. House emoji copy, but video.", copy:ROPE_EU},
+ {r:2,  id:"m25445376691757464", hl:"AI Sync Box 2 (no headline)", fmt:"Video 37s", img:"m25445376691757464_OyIhywbdAvc.jpeg", vid:"m25445376691757464_QhSkkBt1UrM.mp4", run:"63 d", from:"29 Dec 2025", dest:"eu · AI Sync Box 2 kit", note:"THE OUTLIER: first-person creator copy, #advertising disclosure. The only ad of its kind.", copy:SYNC},
+ {r:3,  id:"m717155347075571", hl:"High Quality & Fast Delivery", fmt:"Image", img:"m717155347075571_zErBNohyPsU.jpeg", run:"19 d", from:"25 Dec 2023", dest:"eu · RGBICWW outdoor strip", note:"Christmas flight.", copy:"😘Govee RGBICWW Outdoor LED Strip Lights\n✨Endless color combinations for every season\n🛒Explore More >> https://bit.ly/3SVZqpi"},
+ {r:4,  id:"m919801873105155", hl:"High Quality & Fast Delivery", fmt:"Image", img:"m919801873105155_DkrrCCbHF_Y.jpeg", run:"19 d", from:"25 Dec 2023", dest:"uk · TV Backlight 3 Lite", note:"25% off. The discount is in the body, not the headline.", copy:TVB3_25},
+ {r:5,  id:"m741531860723990", hl:"RGBICWW LED Strip Lights", fmt:"Image", img:"m741531860723990_EPg4fYCQEf4.jpeg", run:"18 d", from:"25 Dec 2023", dest:"us · RGBICWW outdoor strip", note:"US twin of ad 3, with a product-name headline.", copy:"Customize your space with endless color combinations! 🌞✨ Personalized security & ambience, warm and cool white LEDs. Get yours now!"},
+ {r:6,  id:"m832967885247163", hl:"High Quality & Fast Delivery", fmt:"Image", img:"m832967885247163_tUSqU872re4.jpeg", run:"18 d", from:"25 Dec 2023", dest:"uk · TV Backlight 3 Lite", note:"Second UK variant of the 25%-off backlight.", copy:TVB3_25},
+ {r:7,  id:"m878771403947206", hl:"Permanent Outdoor Lights", fmt:"Image", img:"m878771403947206_E56cDxy4n64.jpeg", run:"18 d", from:"25 Dec 2023", dest:"us · permanent outdoor lights", note:"The only copy with hard specs: temperature range, lifetime hours.", copy:"Rugged beauty that defies the elements! 🏡✨ Withstands -4°F to 140°F, 50,000 hours of brilliance. Get yours today and step up your outdoor game!"},
+ {r:8,  id:"m978477227324264", hl:"Untitled carousel", fmt:"Carousel", img:"m978477227324264_qZY-qbQJsCo.jpeg", run:"18 d", from:"13 Mar 2024", dest:"Amazon DE · Neon Rope Light 2", note:"Longest Amazon-bound ad. No copy on record.", copy:""},
+ {r:9,  id:"m397402856342133", hl:"Expand Your Entertainment", fmt:"Video 26s", img:"m397402856342133_YvDE7D5l87U.jpeg", run:"17 d", from:"13 Mar 2024", dest:"Instant Experience", note:"Longest-running of 13 one-off Instant Experiences.", copy:"Relax and unwind with our collection of lights for the bedroom. Discover the ideal bedtime ambiance with soft lighting to help you fall asleep.\n🔥Upgrade Your Home Lighting with Govee!\nGrab it now!👉 https://bit.ly/3Fz9L3v"},
+ {r:10, id:"m1178302500211573", hl:"High Quality & Fast Delivery", fmt:"Image", img:"m1178302500211573_WOYzjQavh1w.jpeg", run:"17 d", from:"25 Dec 2023", dest:"eu · TV Backlight 3 Lite", note:"EU version of the backlight, without the discount.", copy:TVB3}
+];
+
+// AdSpy search "govee", ordered by total likes. PENDING: fill from a logged-in AdSpy capture.
+// Row shape: {r, net, hl, fmt, imgUrl, vidUrl, copy, link, likes, comments, shares, seen, days, dest, post, adspy}
+const likes = [];
+
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function mediaFail(el){
+  const box = el.closest(".ac-media");
+  if(!box || box.dataset.failed) return;
+  box.dataset.failed = "1";
+  const vid = !!box.querySelector(".ac-play,video");
+  box.querySelectorAll("img,video,.ac-play").forEach(function(n){n.remove();});
+  box.insertAdjacentHTML("afterbegin",'<div class="ac-noimg"><span class="ni-glyph">'+(vid?"▶":"▣")+'</span><span>'+(vid?"Video unavailable":"Image unavailable")+'</span><span style="opacity:.72">Open the links below</span></div>');
+}
+
+function playVid(btn){
+  const box = btn.closest(".ac-media");
+  const img = box.querySelector("img");
+  const v = document.createElement("video");
+  v.src = btn.dataset.vid; v.controls = true; v.autoplay = true; v.playsInline = true;
+  if(img) v.poster = img.src;
+  v.onerror = function(){ mediaFail(v); };
+  if(img) img.replaceWith(v); else box.prepend(v);
+  btn.remove();
+}
+
+function likesCard(a){
+  const isVid = !!a.vidUrl;
+  const links = [
+    a.imgUrl ? '<a href="'+esc(a.imgUrl)+'" target="_blank" rel="noopener">'+(isVid?"Poster":"Image")+'</a>' : "",
+    isVid ? '<a href="'+esc(a.vidUrl)+'" target="_blank" rel="noopener">MP4</a>' : "",
+    a.post ? '<a href="'+esc(a.post)+'" target="_blank" rel="noopener">'+esc(a.net)+' post</a>' : "",
+    a.adspy ? '<a href="'+esc(a.adspy)+'" target="_blank" rel="noopener">AdSpy</a>' : ""
+  ].filter(Boolean).join("");
+  const copy = a.copy
+    ? '<p class="ac-copy">'+esc(a.copy)+'</p>'
+    : '<p class="ac-copy empty">No body copy on record for this ad.</p>';
+  const linkDesc = a.link ? '<p class="ac-themes">Link: '+esc(a.link)+'</p>' : "";
+  const meta = '<span><em>Likes</em>'+esc(a.likes)+'</span><span><em>Comments</em>'+esc(a.comments)+'</span><span><em>Shares</em>'+esc(a.shares==null?"—":a.shares)+'</span>'
+    + '<span><em>Seen</em>'+esc(a.seen)+(a.days!=null?' · '+a.days+' d':'')+'</span>'
+    + (a.dest ? '<span><em>Dest</em>'+esc(a.dest)+'</span>' : "");
+  return '<article class="card" id="adspy-'+a.r+'">'
+    + '<span class="ac-rank">'+String(a.r).padStart(2,"0")+'</span>'
+    + '<div class="ac-media">'
+      + (a.imgUrl ? '<img src="'+esc(a.imgUrl)+'" alt="'+esc(a.hl)+'" loading="lazy" decoding="async" onerror="mediaFail(this)">' : "")
+      + (isVid ? '<button type="button" class="ac-play" aria-label="Play video" data-vid="'+esc(a.vidUrl)+'" onclick="playVid(this)"><span>▶</span></button>' : "")
+      + '<span class="ac-fmt">'+esc(a.fmt)+'</span></div>'
+    + '<div class="ac-body">'
+      + '<p class="ac-headline">'+esc(a.hl)+'</p>'
+      + copy + linkDesc
+      + '<div class="ac-meta">'+meta+'</div>'
+      + '<div class="ac-verify">'+links+'</div>'
+    + '</div></article>';
+}
+
+function card(a, mode){
+  const isVid = !!a.vid;
+  const links = [
+    '<a href="'+CDN+a.img+'" target="_blank" rel="noopener">'+(isVid?"Poster":"Image")+'</a>',
+    isVid ? '<a href="'+CDN+a.vid+'" target="_blank" rel="noopener">MP4</a>' : "",
+    '<a href="'+AL+a.id.slice(1)+'" target="_blank" rel="noopener">Ad library</a>'
+  ].filter(Boolean).join("");
+
+  const meta = mode === "endurance"
+    ? '<span><em>Run</em>'+esc(a.run)+'</span><span><em>Launched</em>'+esc(a.from)+'</span><span><em>Dest</em>'+esc(a.dest)+'</span>'
+    : '<span><em>Order</em>'+a.r+' / 190</span><span><em>Run</em>'+esc(a.run)+'</span><span><em>Launched</em>'+esc(a.from)+'</span><span><em>Dest</em>'+esc(a.dest)+'</span>';
+
+  const note = a.note ? '<p class="ac-note">'+esc(a.note)+'</p>' : "";
+  const themes = a.themes ? '<p class="ac-themes">'+esc(a.themes)+'</p>' : "";
+  const copy = a.copy
+    ? '<p class="ac-copy">'+esc(a.copy)+'</p>'
+    : '<p class="ac-copy empty">No body copy on record for this ad.</p>';
+
+  return '<article class="card" id="'+mode+'-'+a.id+'">'
+    + '<span class="ac-rank">'+String(a.r).padStart(2,"0")+'</span>'
+    + '<div class="ac-media">'
+      + '<img src="'+CDN+a.img+'" alt="'+esc(a.hl)+'" loading="lazy" decoding="async" onerror="mediaFail(this)">'
+      + (isVid ? '<button type="button" class="ac-play" aria-label="Play video" data-vid="'+CDN+a.vid+'" onclick="playVid(this)"><span>▶</span></button>' : '')
+      + '<span class="ac-fmt">'+esc(a.fmt)+'</span></div>'
+    + '<div class="ac-body">'
+      + '<p class="ac-headline">'+esc(a.hl)+'</p>'
+      + note + copy + themes
+      + '<div class="ac-meta">'+meta+'</div>'
+      + '<div class="ac-verify">'+links+'</div>'
+    + '</div></article>';
+}
+
+document.getElementById("board-grid").innerHTML = board.map(function(a){return card(a,"board");}).join("");
+document.getElementById("endurance-grid").innerHTML = endurance.map(function(a){return card(a,"endurance");}).join("");
+if (likes.length) {
+  document.getElementById("likes-pending").hidden = true;
+  document.getElementById("likes-head").hidden = false;
+  document.getElementById("likes-grid").hidden = false;
+  document.getElementById("likes-sum").textContent = likes.length + " creatives";
+  document.getElementById("likes-grid").innerHTML = likes.map(likesCard).join("");
+}
+</script>
+</body>
+</html>
